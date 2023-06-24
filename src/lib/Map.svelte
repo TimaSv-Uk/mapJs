@@ -90,6 +90,8 @@
         anchor: [0.5, 0.96],
         crossOrigin: 'anonymous',
         src: src,
+        width:50,
+        height:50,
         // img: img,
         // imgSize: img ? [img.width, img.height] : undefined,
       }),
@@ -97,7 +99,7 @@
   }
   
   const iconFeature = new Feature(new Point(fromLonLat([30.523333, 50.450001])));
-  iconFeature.set('style', createStyle('/vite.svg', undefined));
+  iconFeature.set('style', createStyle('/point.png', undefined));
 
     // const iconFeature = new Feature({
     //   geometry: new Point(),
