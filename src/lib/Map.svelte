@@ -1,4 +1,4 @@
-<script lang="ts">
+<script lang="js">
   //   import { Feature, Map } from "ol";
   //   import TileLayer from "ol/layer/Tile";
   //   import "ol/ol.css";
@@ -70,6 +70,7 @@
   // };
   import Feature from 'ol/Feature.js';
   import Map from 'ol/Map.js';
+  import { fromLonLat } from "ol/proj";
   import Point from 'ol/geom/Point.js';
   import Select from 'ol/interaction/Select.js';
   import Stamen from 'ol/source/Stamen.js';
@@ -77,66 +78,67 @@
   import View from 'ol/View.js';
   import {Icon, Style} from 'ol/style.js';
   import {Tile as TileLayer, Vector as VectorLayer} from 'ol/layer.js';
-  
+  import OSM from "ol/source/OSM"
+  import {defaults} from 'ol/control.js';
+
+  let pointToggleHtml = false;
   let map = null;
-  const setupMap = (node:any) => {
+  const setupMap = (node) => {
   function createStyle(src, img) {
     return new Style({
       image: new Icon({
         anchor: [0.5, 0.96],
         crossOrigin: 'anonymous',
         src: src,
-        img: img,
-        imgSize: img ? [img.width, img.height] : undefined,
+        // img: img,
+        // imgSize: img ? [img.width, img.height] : undefined,
       }),
     });
   }
   
-  const iconFeature = new Feature(new Point([0, 0]));
+  const iconFeature = new Feature(new Point(fromLonLat([30.523333, 50.450001])));
   iconFeature.set('style', createStyle('/vite.svg', undefined));
+
+    // const iconFeature = new Feature({
+    //   geometry: new Point(),
+    //   name: "Kiyv",
+    // });
   
-  const map = new Map({
-    layers: [
-      new TileLayer({
-        source: new Stamen({layer: 'watercolor'}),
-      }),
-      new VectorLayer({
+    const vectorSource = new VectorLayer({
         style: function (feature) {
           return feature.get('style');
         },
         source: new VectorSource({features: [iconFeature]}),
+      })
+
+  const map = new Map({
+    controls: defaults({zoom: false, attribution: false,rotate:false,}),
+    layers: [
+      // new TileLayer({
+        // source: new Stamen({layer: 'terrain'}),
+      // }),
+      new TileLayer({
+      source: new OSM(),
       }),
+      vectorSource,
     ],
     target: document.getElementById('map'),
     view: new View({
-      center: [0, 0],
-      zoom: 3,
+      center: fromLonLat([30.523333, 50.450001]),
+      zoom: 13,
+      minZoom: 8,
+      maxZoom: 18,
     }),
+    
   });
   
-  // const selectStyle = {};
-  // const select = new Select({
-  //   style: function (feature) {
-  //     const image = feature.get('style').getImage().getImage();
-  //     if (!selectStyle[image.src]) {
-  //       const canvas = document.createElement('canvas');
-  //       const context = canvas.getContext('2d');
-  //       canvas.width = image.width;
-  //       canvas.height = image.height;
-  //       context.drawImage(image, 0, 0, image.width, image.height);
-  //       const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-  //       const data = imageData.data;
-  //       for (let i = 0, ii = data.length; i < ii; i = i + (i % 4 == 2 ? 2 : 1)) {
-  //         data[i] = 255 - data[i];
-  //       }
-  //       context.putImageData(imageData, 0, 0);
-  //       selectStyle[image.src] = createStyle(undefined, canvas);
-  //     }
-  //     return selectStyle[image.src];
-  //   },
-  // });
-  // map.addInteraction(select);
-  
+  map.on('click', (event) => {
+  const feature = map.forEachFeatureAtPixel(event.pixel, (feature) => feature);
+  if (feature) {
+    // Show or hide HTML content here
+    pointToggleHtml = !pointToggleHtml
+  }
+});
   map.on('pointermove', function (evt) {
     map.getTargetElement().style.cursor = map.hasFeatureAtPixel(evt.pixel)
       ? 'pointer'
@@ -156,13 +158,16 @@
   </script>
 
 <div>
-  <img src="/vite.svg" alt="">
   <div id="map" class="map"  use:setupMap/>
+  {#if pointToggleHtml}
+    <h1>Bob</h1>
+  {/if}
 </div>
 
 <style>
   .map {
-    width: 1200px;
-    height: 800px;
+    width: 1100px;
+    height: 500px;
   }
+
 </style>
